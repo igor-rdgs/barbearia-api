@@ -1,8 +1,13 @@
 import express from 'express';
-import { listarBarbeiros, buscarBarbeiroPorId } from '../controllers/barberController.js';
+import { barberController } from '../controllers/barberController.js';
+
+
 const router = express.Router();
 
-router.get('/', listarBarbeiros);
-router.get('/:id', buscarBarbeiroPorId);
+router.get('/', barberController.list);
+router.get('/:id', barberController.findById);
+router.post('/', barberController.create);
+router.put('/:id', barberController.update);
+router.delete('/:id', barberController.remove);
 
 export default router;

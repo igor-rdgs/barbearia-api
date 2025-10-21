@@ -1,19 +1,48 @@
 import { barberService } from '../services/barberService.js';
 
-export async function listarBarbeiros(req, res) {
-  try {
-    const barbers = await barberService.listar();
-    res.json(barbers);
-  } catch (err) {
-    res.status(500).json({ mensagem: err.message });
-  }
-}
+export const barberController = {
+  list: async (req, res, next) => {
+    try {
+      const barbers = await barberService.list();
+      res.json(barbers);
+    } catch (err) {
+      next(err);
+    }
+  },
 
-export async function buscarBarbeiroPorId(req, res) {
-  try {
-    const barber = await barberService.buscarPorId(Number(req.params.id));
-    res.json(barber);
-  } catch (err) {
-    res.status(404).json({ mensagem: err.message });
-  }
+  findById: async (req, res, next) => {
+    try {
+      const barber = await barberService.findById(req.params.id);
+      res.json(barber);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  create: async (req, res, next) => {
+    try {
+      const newBarber = await barberService.create(req.body);
+      res.status(201).json(newBarber);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  update: async (req, res, next) => {
+    try {
+      const updatedBarber = await barberService.update(req.params.id, req.body);
+      res.json(updatedBarber);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  remove: async (req, res, next) => {
+    try {
+      await barberService.remove(req.params.id);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  },
 }
