@@ -18,7 +18,7 @@ model User {
   updatedAt DateTime          @updatedAt
 
   // Relações
-  appointments   Appointment[]
+  appointments   Appointment[] 
   schedules      BarberSchedule[]
 }
 
@@ -57,7 +57,7 @@ model Appointment {
   serviceId   Int
 
   barber      User     @relation(fields: [barberId], references: [id])
-  customer    Customer @relation(fields: [customerId], references: [id])
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   service     Service  @relation(fields: [serviceId], references: [id])
 }
 
