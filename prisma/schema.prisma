@@ -1,0 +1,88 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int               @id @default(autoincrement())
+  name      String
+  email     String            @unique
+  password  String
+  role      UserRole          @default(BARBER)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  // Relações
+  appointments   Appointment[]
+  schedules      BarberSchedule[]
+}
+
+model Customer {
+  id        Int        @id @default(autoincrement())
+  name      String
+  phone     String     @unique
+  email     String?    @unique
+  createdAt DateTime   @default(now())
+
+  appointments   Appointment[]
+}
+
+model Service {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  duration    Int       // em minutos
+  price       Float
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  appointments Appointment[]
+}
+
+model Appointment {
+  id          Int               @id @default(autoincrement())
+  date        DateTime          // só a data
+  time        String            // horário no formato "HH:mm"
+  status      AppointmentStatus @default(PENDING)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  barberId    Int
+  customerId  Int
+  serviceId   Int
+
+  barber      User     @relation(fields: [barberId], references: [id])
+  customer    Customer @relation(fields: [customerId], references: [id])
+  service     Service  @relation(fields: [serviceId], references: [id])
+}
+
+model BarberSchedule {
+  id        Int      @id @default(autoincrement())
+  barberId  Int
+  dayOfWeek Int      // 0 = domingo, 6 = sábado
+  startTime String   // formato "HH:mm"
+  endTime   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  barber    User @relation(fields: [barberId], references: [id])
+
+  @@unique([barberId, dayOfWeek])
+}
+
+enum UserRole {
+  ADMIN
+  BARBER
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
