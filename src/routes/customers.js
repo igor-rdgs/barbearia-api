@@ -1,9 +1,11 @@
 import express from 'express';
-import { listarClientes, buscarClientePorId, criarCliente } from '../controllers/customerController.js';
+import { customerController } from '../controllers/customerController.js';
 const router = express.Router();
 
-router.get('/', listarClientes);
-router.get('/:id', buscarClientePorId);
-router.post('/', criarCliente);
+router.get('/', customerController.list);
+router.get('/:id', customerController.findById);
+router.post('/', customerController.create);
+router.put('/:id', customerController.update);
+router.delete('/:id', customerController.remove);
 
 export default router;
