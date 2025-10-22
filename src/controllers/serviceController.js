@@ -12,8 +12,7 @@ export const serviceController = {
 
   findById: async (req, res, next) => {
     try {
-      const id = req.params.id;
-      const service = await serviceService.findById(id);
+      const service = await serviceService.findById(req.params.id);
       res.json(service);
     } catch (err) {
       next(err);
@@ -22,9 +21,11 @@ export const serviceController = {
   
   create: async (req, res, next) => {
     try {
-      const data = req.body;
-      const newService = await serviceService.create(data);
-      res.status(201).json(newService);
+      const newService = await serviceService.create(req.body);
+      res.status(201).json({
+        message: 'Serviço criado com sucesso.',
+        service: newService,
+      });
     } catch (err) {
       next(err);
     }
@@ -32,10 +33,11 @@ export const serviceController = {
   
   update: async (req, res, next) => {
     try {
-      const id = req.params.id;
-      const data = req.body;
-      const updatedService = await serviceService.update(id, data);
-      res.json(updatedService);
+      const updatedService = await serviceService.update(req.params.id, req.body);
+      res.json({
+        message: 'Serviço atualizado com sucesso.',
+        service: updatedService,
+      });
     } catch (err) {
       next(err);
     }
@@ -43,9 +45,8 @@ export const serviceController = {
 
   remove: async (req, res, next) => {
     try {
-      const id = req.params.id;
-      await serviceService.remove(id);
-      res.status(204).json({ message: 'Serviço removido'});
+      await serviceService.remove(req.params.id);
+      res.json({ message: 'Serviço removido com sucesso.'});
     } catch (err) {
       next(err);
     }

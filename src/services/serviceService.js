@@ -6,39 +6,68 @@ export const serviceService = {
   },
 
   findById: async (id) => {
-    const service = await prisma.service.findUnique({ 
-      where: { id: Number(id) } 
+    const service = await prisma.service.findUnique({
+      where: { id: Number(id) },
     });
-    if (!service) throw new Error('Serviço não encontrado.');
+    if (!service) {
+      const err = new Error('Serviço não encontrado.');
+      err.status = 404;
+      throw err;
+    }
     return service;
   },
 
   create: async (data) => {
     const { name, description, duration, price } = data;
-    if (!name || !duration || !price) {
-      throw new Error('Nome, duração e preço são obrigatórios.');
+
+    if (!name || !price || !duration) {
+      const err = new Error('Nome, duração e preço são obrigatórios.');
+      err.status = 400;
+      throw err;
+    }
+
+    const existing = await prisma.service.findUnique({
+      where: { name },
+    });
+
+    if (existing) {
+      const err = new Error('Já existe um serviço com este nome.');
+      err.status = 409;
+      throw err;
     }
 
     return prisma.service.create({
       data: {
         name,
-        description,
+        price: Number(price),
         duration: Number(duration),
-        price: Number(price)
+        description: data.description || null,
       },
     });
   },
 
   update: async (id, data) => {
-    await serviceService.findById(id)
+    const existing = await serviceService.findById(id);
+
+    // Evita duplicidade de nome ao atualizar
+    if (data.name && data.name !== existing.name) {
+      const duplicated = await prisma.service.findUnique({
+        where: { name: data.name },
+      });
+      if (duplicated) {
+        const err = new Error('Nome de serviço já está em uso.');
+        err.status = 409;
+        throw err;
+      }
+    }
 
     return prisma.service.update({
       where: { id: Number(id) },
       data: {
-        name: data.name,
-        description: data.description,
-        duration: Number(data.duration),
-        price: Number(data.price),
+        name: data.name ?? existing.name,
+        description: data.description ?? existing.description,
+        price: data.price ? Number(data.price) : existing.price,
+        duration: data.duration ? Number(data.duration) : existing.duration,
       },
     });
   },
