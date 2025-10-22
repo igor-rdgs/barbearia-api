@@ -6,7 +6,6 @@ import serviceRoutes from './routes/services.js';
 import barberRoutes from './routes/barbers.js';
 import appointmentRoutes from './routes/appointments.js';
 import customersRoutes from './routes/customers.js';
-import scheduleRoutes from './routes/schedules.js';
 import publicRoutes from './routes/public.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
@@ -22,7 +21,6 @@ app.use('/services', serviceRoutes);
 app.use('/barbers', barberRoutes);
 app.use('/appointments', appointmentRoutes);
 app.use('/customers', customersRoutes);
-app.use('/schedules', scheduleRoutes);
 app.use('/public', publicRoutes);
 
 app.get('/', (req, res) => {

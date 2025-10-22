@@ -1,15 +1,18 @@
-import express from 'express';
+import { Router } from 'express';
 import { barberController } from '../controllers/barberController.js';
 
+const router = Router();
 
-const router = express.Router();
-
+// Barbeiros
 router.get('/', barberController.list);
 router.get('/:id', barberController.findById);
 router.post('/', barberController.create);
 router.put('/:id', barberController.update);
 router.delete('/:id', barberController.remove);
 
-router.get('/:id/schedule', barberController.listSchedule);
-router.put('/:id/schedule', barberController.updateSchedule);
+// Horários
+router.get('/:barberId/schedules', barberController.listSchedule);
+router.post('/:barberId/schedules', barberController.upsertSchedule);
+router.delete('/:barberId/schedules/:scheduleId', barberController.deleteSchedule);
+
 export default router;

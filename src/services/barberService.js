@@ -100,35 +100,45 @@ export const barberService = {
     return prisma.user.delete({ where: { id: Number(id) } });
   },
 
-  updateSchedule: async (barberId, dayOfWeek, startTime, endTime) => {
-    if (dayOfWeek < 0 || dayOfWeek > 6) {
-      const err = new Error('O dia da semana deve estar entre 0 (domingo) e 6 (sábado).');
-      err.status = 400;
-      throw err;
-    }
-
-    return prisma.barberSchedule.upsert({
-      where: {
-        barberId_dayOfWeek: {
-          barberId: Number(barberId),
-          dayOfWeek,
-        },
-      },
-      update: { startTime, endTime },
-      create: {
-        barberId: Number(barberId),
-        dayOfWeek,
-        startTime,
-        endTime,
-      },
-    });
-  },
-
   listSchedule: async (barberId) => {
     await barberService.findById(barberId);
     return prisma.barberSchedule.findMany({
       where: { barberId: Number(barberId) },
       orderBy: { dayOfWeek: 'asc' },
+    });
+  },
+
+  upsertSchedule: async ({ barberId, dayOfWeek, startTime, endTime }) => {
+    await barberService.findById(Number(barberId));
+
+    if (dayOfWeek < 0 || dayOfWeek > 6) {
+      const err = new Error('O dia da semana deve estar entre 0 (domingo) e 6 (sábado).');
+      err.status = 400;
+      throw err;
+    };
+
+    return prisma.barberSchedule.upsert({
+      where: { barberId_dayOfWeek: { barberId: Number(barberId), dayOfWeek } },
+      update: { startTime, endTime },
+      create: { barberId: Number(barberId), dayOfWeek, startTime, endTime },
+    });
+  },
+
+  deleteSchedule: async (barberId, id) => {
+    await barberService.findById(Number(barberId));
+    
+    const schedule = await prisma.barberSchedule.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!schedule) {
+      const err = new Error('Horário não encontrado.');
+      err.status = 404;
+      throw err;
+    }
+    
+    return prisma.barberSchedule.delete({
+      where: { id: Number(id) },
     });
   },
 };
