@@ -10,4 +10,6 @@ router.post('/', barberController.create);
 router.put('/:id', barberController.update);
 router.delete('/:id', barberController.remove);
 
+router.get('/:id/schedule', barberController.listSchedule);
+router.put('/:id/schedule', barberController.updateSchedule);
 export default router;
