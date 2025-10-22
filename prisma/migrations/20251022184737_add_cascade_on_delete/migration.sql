@@ -1,0 +1,11 @@
+-- DropForeignKey
+ALTER TABLE "public"."Appointment" DROP CONSTRAINT "Appointment_barberId_fkey";
+
+-- DropForeignKey
+ALTER TABLE "public"."Appointment" DROP CONSTRAINT "Appointment_serviceId_fkey";
+
+-- AddForeignKey
+ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_barberId_fkey" FOREIGN KEY ("barberId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE CASCADE ON UPDATE CASCADE;
