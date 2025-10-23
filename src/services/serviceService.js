@@ -9,6 +9,7 @@ export const serviceService = {
     const service = await prisma.service.findUnique({
       where: { id: Number(id) },
     });
+
     if (!service) {
       const err = new Error('Serviço não encontrado.');
       err.status = 404;
@@ -41,7 +42,7 @@ export const serviceService = {
         name,
         price: Number(price),
         duration: Number(duration),
-        description: data.description || null,
+        description: description || null,
       },
     });
   },
