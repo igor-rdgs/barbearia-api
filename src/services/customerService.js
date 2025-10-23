@@ -4,12 +4,14 @@ export const customerService = {
   list: async () => {
     return prisma.customer.findMany({
       orderBy: { name: 'asc' },
+      include: { appointments },
     });
   },
 
   findById: async (id) => {
     const customer = await prisma.customer.findUnique({
       where: { id: Number(id) },
+      include: { appointments },
     });
 
     if (!customer) {
