@@ -4,14 +4,14 @@ export const customerService = {
   list: async () => {
     return prisma.customer.findMany({
       orderBy: { name: 'asc' },
-      include: { appointments },
+      include: { appointments: true },
     });
   },
 
   findById: async (id) => {
     const customer = await prisma.customer.findUnique({
       where: { id: Number(id) },
-      include: { appointments },
+      include: { appointments: true },
     });
 
     if (!customer) {
@@ -31,19 +31,17 @@ export const customerService = {
       throw err;
     };
 
-    const existing = await prisma.customer.findUnique({
+    let customer = await prisma.customer.findUnique({
       where: { phone },
     });
 
-    if (existing) {
-      const err = new Error('Já existe um cliente com este e-mail.');
-      err.status = 409; // conflito
-      throw err;
-    };
-
-    return prisma.customer.create({
-      data: { name, phone, email },
-    });
+    if (customer && (customer.name !== name || (email && customer.email !== email))) {
+      throw new Error('Número de telefone já cadastrado para outro cliente.');
+    }
+    if (!customer) {
+      customer = await prisma.customer.create({ data: { name, phone, email } });
+    }
+    return customer;
   },
 
   update: async (id, data) => {

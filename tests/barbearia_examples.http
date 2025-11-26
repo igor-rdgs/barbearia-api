@@ -1,0 +1,83 @@
+# Barbearia API — exemplos para VS Code REST Client
+# Defina a variável `baseUrl` (ex.: http://localhost:3000) ou substitua inline.
+@baseUrl=http://localhost:3000
+
+### 1) Criar Agendamento (admin/painel)
+POST {{baseUrl}}/appointments
+Content-Type: application/json
+
+{
+  "barberId": 1,
+  "serviceId": 2,
+  "date": "2025-10-30",
+  "time": "14:30",
+  "customerPhone": "11999999999",
+  "customerName": "Fulano",
+  "customerEmail": "fulano@example.com"
+}
+
+# Resposta esperada: 201
+# {
+#   "message": "Agendamento criado com sucesso!",
+#   "appointment": { ... }
+# }
+
+### 1.b) Criar agendamento — exemplo que falha (telefone já cadastrado com nome diferente)
+POST {{baseUrl}}/appointments
+Content-Type: application/json
+
+{
+  "barberId": 1,
+  "serviceId": 2,
+  "date": "2025-10-30",
+  "time": "15:00",
+  "customerPhone": "11999999999",
+  "customerName": "Outro Nome",
+  "customerEmail": "outro@example.com"
+}
+
+# Resposta esperada: 400
+# { "error": "Já existe um cliente cadastrado com este telefone." }
+
+### 2) Buscar disponibilidade pública
+GET {{baseUrl}}/public/appointments/availability?barberId=2&serviceId=1&date=2025-10-25
+
+# Resposta esperada: 200
+# {
+#   "barberId": 1,
+#   "serviceId": 2,
+#   "date": "2025-10-30",
+#   "availableTimes": ["09:00","09:30","10:30","11:00","14:00","15:00"]
+# }
+
+### 3) Obter agendamento por id
+# Substitua 123 pelo id retornado ao criar um agendamento
+GET {{baseUrl}}/appointments/123
+
+# Resposta esperada: 200
+# {
+#   "id": 123,
+#   "date": "2025-10-30T14:30:00.000Z",
+#   "time": "14:30",
+#   "status": "PENDING",
+#   "barber": { "id": 1, "name": "Barbeiro X" },
+#   "customer": { "id": 45, "name": "Fulano", "phone": "11999999999" },
+#   "service": { "id": 2, "name": "Corte", "duration": 30 }
+# }
+
+### 4) Listar barbeiros públicos
+GET {{baseUrl}}/public/barbers
+
+# Resposta esperada: 200
+# [ { "id": 1, "name": "Barbeiro X", "email": "x@ex.com" }, { "id": 2, "name": "Barbeiro Y" } ]
+
+### 5) Dicas de uso
+- Inicie a API localmente: `npm run dev`
+- Se usar Docker Compose, ajuste `{{baseUrl}}` com o host/porta do container (ex.: http://localhost:3000)
+- Para testar cenários de conflito de horário, crie dois agendamentos com sobreposição de horários para o mesmo `barberId` e `date`.
+
+### 6) Obter próximo horário disponível para um barbeiro e serviço
+GET {{baseUrl}}/public/barbers/2/next-available?serviceId=1
+
+
+

@@ -1,0 +1,80 @@
+{
+  "info": {
+    "name": "Barbearia API - Exemplos",
+    "_postman_id": "barbearia-examples-001",
+    "description": "Coleção com exemplos prontos para execução local. Defina a variável baseUrl (padrão http://localhost:3000).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" }
+  ],
+  "item": [
+    {
+      "name": "Criar Agendamento",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"barberId\": 1,\n  \"serviceId\": 2,\n  \"date\": \"2025-10-30\",\n  \"time\": \"14:30\",\n  \"customerPhone\": \"11999999999\",\n  \"customerName\": \"Fulano\",\n  \"customerEmail\": \"fulano@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/appointments",
+          "host": ["{{baseUrl}}"],
+          "path": ["appointments"]
+        },
+        "description": "Cria um novo agendamento. Aceita `customerId` OU `customerPhone`+`customerName`. Esperado: 201 com objeto appointment."
+      },
+      "response": []
+    },
+    {
+      "name": "Buscar Disponibilidade Pública",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/public/appointments/availability?barberId=1&serviceId=2&date=2025-10-30",
+          "host": ["{{baseUrl}}"],
+          "path": ["public","appointments","availability"],
+          "query": [
+            { "key": "barberId", "value": "1" },
+            { "key": "serviceId", "value": "2" },
+            { "key": "date", "value": "2025-10-30" }
+          ]
+        },
+        "description": "Retorna horários disponíveis para o barbeiro e serviço na data informada. Esperado: 200 com campo availableTimes."
+      },
+      "response": []
+    },
+    {
+      "name": "Obter Agendamento por ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/appointments/123",
+          "host": ["{{baseUrl}}"],
+          "path": ["appointments","123"]
+        },
+        "description": "Substitua 123 pelo id real. Retorna detalhes do agendamento (barber, customer, service)."
+      },
+      "response": []
+    },
+    {
+      "name": "Listar Barbeiros Públicos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/public/barbers",
+          "host": ["{{baseUrl}}"],
+          "path": ["public","barbers"]
+        },
+        "description": "Lista barbeiros públicos com campos id, name e email."
+      },
+      "response": []
+    }
+  ]
+}

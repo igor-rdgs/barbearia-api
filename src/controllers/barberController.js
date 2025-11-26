@@ -59,6 +59,16 @@ export const barberController = {
     }
   },
 
+  getMyAppointments: async (req, res, next) => {
+    try {
+      const userId = req.user.id; // vem do middleware de auth
+      const appointments = await barberService.getAppointmentsByBarber(userId);
+      return res.json(appointments);
+    } catch (error) {
+      next(error);
+    }
+  },
+
   listSchedule: async (req, res, next) => {
     try {
       const schedules = await barberService.listSchedule(req.params.barberId);

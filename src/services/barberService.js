@@ -1,4 +1,5 @@
 import prisma from '../prismaClient.js';
+import { addMinutes, format } from 'date-fns';
 import bcrypt from 'bcrypt';
 
 export const barberService = {
@@ -7,16 +8,17 @@ export const barberService = {
       where: { role: 'BARBER' },
       orderBy: { name: 'asc' },
       include: { schedules: true },
+      omit: { password: true },
     });
 
-    // Remove o campo password antes de retornar
-    return barbers.map(({ password, ...rest }) => rest);
+    return barbers;
   },
 
   findById: async (id) => {
     const barber = await prisma.user.findUnique({
       where: { id: Number(id) },
       include: { schedules: true },
+      omit: { password: true },
     });
 
     if (!barber || barber.role !== 'BARBER') {
@@ -25,9 +27,7 @@ export const barberService = {
       throw err;
     }
 
-    // Remove o campo password
-    const { password, ...safeBarber } = barber;
-    return safeBarber;
+    return barber;
   },
 
   create: async (data) => {
@@ -55,11 +55,10 @@ export const barberService = {
         password: hashedPassword,
         role: 'BARBER',
       },
+      omit: { password: true },
     });
 
-    // Remove o campo password da resposta
-    const { password: _, ...safeBarber } = barber;
-    return safeBarber;
+    return barber;
   },
 
   update: async (id, data) => {
@@ -89,15 +88,46 @@ export const barberService = {
         email: data.email ?? existing.email,
         password: newPassword,
       },
+      omit: { password: true },
     });
 
-    const { password, ...safeUpdated } = updated;
-    return safeUpdated;
+    return updated;
   },
 
   remove: async (id) => {
     await barberService.findById(id);
     return prisma.user.delete({ where: { id: Number(id) } });
+  },
+
+  getAppointmentsByBarber: async (barberId) => {
+    const records = await prisma.appointment.findMany({
+      where: { barberId: Number(barberId) },
+      include: {
+        customer: true,
+        service: true,
+      },
+      omit: { barber: { password: true } },
+      orderBy: { date: 'asc' }
+    });
+
+    // Agrupando por data (YYYY-MM-DD)
+    const grouped = {};
+
+    records.forEach(a => {
+      const day = format(a.date, 'yyyy-MM-dd');
+      if (!grouped[day]) grouped[day] = [];
+
+      grouped[day].push({
+        time: format(a.date, 'HH:mm'),
+        customer: a.customer.name,
+        phone: a.customer.phone,
+        service: a.service.name,
+        duration: a.service.duration,
+        status: a.status
+      });
+    });
+
+    return grouped;
   },
 
   listSchedule: async (barberId) => {
@@ -106,6 +136,14 @@ export const barberService = {
       where: { barberId: Number(barberId) },
       orderBy: { dayOfWeek: 'asc' },
     });
+  },
+
+  getScheduleByDay: async (barberId, dayOfWeek) => {
+    const schedule = await prisma.barberSchedule.findUnique({
+      where: { barberId_dayOfWeek: { barberId: Number(barberId), dayOfWeek } },
+    });
+    if (!schedule) throw new Error('O barbeiro não trabalha nesse dia.');
+    return schedule;
   },
 
   upsertSchedule: async ({ barberId, dayOfWeek, startTime, endTime }) => {
@@ -126,7 +164,7 @@ export const barberService = {
 
   deleteSchedule: async (barberId, id) => {
     await barberService.findById(Number(barberId));
-    
+
     const schedule = await prisma.barberSchedule.findUnique({
       where: { id: Number(id) },
     });
@@ -136,9 +174,67 @@ export const barberService = {
       err.status = 404;
       throw err;
     }
-    
+
     return prisma.barberSchedule.delete({
       where: { id: Number(id) },
     });
+  },
+
+  getAvailableSlots: async (barberId, date) => {
+    await barberService.findById(Number(barberId));
+
+    const targetDate = new Date(`${date}T00:00:00`);
+
+    // 1️⃣ Determina o dia da semana (0 = domingo, 6 = sábado)
+    const dayOfWeek = targetDate.getUTCDay();
+
+    // 2️⃣ Busca o horário de trabalho do barbeiro nesse dia
+    const schedule = await prisma.barberSchedule.findUnique({
+      where: {
+        barberId_dayOfWeek: {
+          barberId: Number(barberId),
+          dayOfWeek,
+        },
+      },
+    });
+
+    if (!schedule) {
+      return []; // barbeiro não trabalha nesse dia
+    }
+
+    // 3️⃣ Busca agendamentos existentes nesse dia
+    const appointments = await prisma.appointment.findMany({
+      where: {
+        barberId: Number(barberId),
+        date: {
+          gte: new Date(`${date}T00:00:00`),
+          lt: new Date(`${date}T23:59:59`),
+        },
+      },
+      include: { service: true },
+    });
+
+    // 4️⃣ Gera slots disponíveis
+    const availableSlots = [];
+    let currentTime = new Date(`${date}T${schedule.startTime}`);
+    const endTime = new Date(`${date}T${schedule.endTime}`);
+
+    while (currentTime < endTime) {
+      const formattedTime = format(currentTime, 'HH:mm');
+
+      const conflict = appointments.some((appt) => {
+        const apptStart = appt.date;
+        const apptEnd = addMinutes(apptStart, appt.service.duration);
+        return currentTime >= apptStart && currentTime < apptEnd;
+      });
+
+      if (!conflict) {
+        availableSlots.push(formattedTime);
+      }
+
+      currentTime = addMinutes(currentTime, 30); // intervalo de 30 minutos
+    }
+
+    return availableSlots;
   },
 };

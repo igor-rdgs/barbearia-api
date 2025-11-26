@@ -1,10 +1,30 @@
-import express from 'express';
-import { listarAgendamentos, criarAgendamento, confirmarAgendamento, cancelarAgendamento } from '../controllers/appointmentController.js';
-const router = express.Router();
+import { Router } from 'express';
+import { appointmentController } from '../controllers/appointmentController.js';
+import { authenticate, authorize } from '../middlewares/authenticate.js';
+import { loadAppointment } from '../middlewares/LoadAppointments.js';
+import { authorizeBarberOwnAppointments } from '../middlewares/authorizeBarberOwnAppointments.js';
 
-router.get('/', listarAgendamentos);
-router.post('/', criarAgendamento);
-router.patch('/:id/confirmar', confirmarAgendamento);
-router.patch('/:id/cancelar', cancelarAgendamento);
+const router = Router();
+
+router.get('/', authenticate, authorize('ADMIN', 'BARBER'), appointmentController.list);
+router.get('/:id', authenticate, authorize('ADMIN', 'BARBER'), appointmentController.findById);
+router.post('/', authenticate, authorize('ADMIN', 'BARBER'), appointmentController.create);
+router.put(
+  '/:id/confirm',
+  authenticate,
+  authorize('ADMIN', 'BARBER'),
+  loadAppointment,
+  authorizeBarberOwnAppointments,
+  appointmentController.confirm
+);
+
+router.put(
+  '/:id/cancel',
+  authenticate,
+  authorize('ADMIN', 'BARBER'),
+  loadAppointment,
+  authorizeBarberOwnAppointments,
+  appointmentController.cancel
+);
 
 export default router;

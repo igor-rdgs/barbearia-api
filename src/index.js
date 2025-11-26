@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-
+import auth from './routes/auth.js';
 import serviceRoutes from './routes/services.js';
 import barberRoutes from './routes/barbers.js';
 import appointmentRoutes from './routes/appointments.js';
@@ -17,6 +17,7 @@ app.use(cors());
 app.use(express.json());
 
 // Main routes
+app.use('/auth', auth);
 app.use('/services', serviceRoutes);
 app.use('/barbers', barberRoutes);
 app.use('/appointments', appointmentRoutes);
